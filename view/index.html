@@ -7,10 +7,33 @@
         <script>
             $(document).ready(function() {
                 nodecg.declareSyncedVar({
+                    name: 'latestDonation',
+                    initialVal: null,
+                    setter: function(donation) {
+                        if (donation) {
+                            $('#latestDonationName').text(donation.nickname);
+                            $('#latestDonationMessage').text(donation.message);
+                            $('#latestDonationAmount').text(accounting.formatMoney(donation.amount.display.total));
+                        }
+                    }
+                });
+
+                nodecg.declareSyncedVar({
+                    name: 'topDonor',
+                    initialVal: null,
+                    setter: function(donor) {
+                        if (donor) {
+                            $('#topDonorName').text(donor.nickname);
+                            $('#topDonorAmount').text(accounting.formatMoney(donor.amount.total));
+                        }
+                    }
+                });
+
+                nodecg.declareSyncedVar({
                     name: 'total',
                     initialVal: 0,
                     setter: function(total) {
-                        $('#total').text(accounting.formatMoney(total));
+                        $('#totalAmount').text(accounting.formatMoney(total));
                     }
                 });
             });
@@ -18,6 +41,8 @@
     </head>
 
     <body>
-        <span id="total"></span>
+        <p>Top Donor: <span id="topDonorName"></span> (<span id="topDonorAmount"></span>)</p>
+        <p>Latest Donation: <span id="latestDonationName"></span> (<span id="latestDonationAmount"></span>)</p>
+        <p>Total Raised: <span id="totalAmount"></span></p>
     </body>
 </html>

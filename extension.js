@@ -8,10 +8,18 @@ var q = require('q');
 // var config = require('./config.json');
 
 module.exports = function(nodecg) {
-    console.log(nodecg.bundleConfig);
-
     var client = new imraising({
         key: nodecg.bundleConfig.imraisingKey
+    });
+
+    nodecg.declareSyncedVar({
+        name: 'latestDonation',
+        initialVal: null
+    });
+
+    nodecg.declareSyncedVar({
+        name: 'topDonor',
+        initialVal: null
     });
 
     nodecg.declareSyncedVar({
@@ -39,6 +47,28 @@ module.exports = function(nodecg) {
         total = 0;
         page = 0;
 
+        client.getDonations({startDate: nodecg.bundleConfig.startDate}).then(function(donations) {
+            var latestDonation = donations[0];
+
+            latestDonation.amount.display.total = fx(latestDonation.amount.display.total).from(latestDonation.amount.display.currency).to('USD');
+            latestDonation.amount.display.currency = 'USD';
+
+            nodecg.variables.latestDonation = latestDonation;
+        }, function(err) {
+            console.log(err);
+        });
+
+        client.getTopDonors({startDate: nodecg.bundleConfig.startDate}).then(function(donors) {
+            var topDonor = donors[0];
+
+            topDonor.amount.total = fx(topDonor.amount.total).from(topDonor.amount.currency).to('USD');
+            topDonor.amount.currency = 'USD';
+
+            nodecg.variables.topDonor = topDonor;
+        }, function(err) {
+            console.log(err);
+        });
+
         getDonors(0).then(function(donors) {
             donors.forEach(function(donor) {
                 total += fx(donor.amount.total).from(donor.amount.currency).to('USD');
@@ -46,9 +76,6 @@ module.exports = function(nodecg) {
 
             if (donors.length >= 100) {
                 return getDonors(++page);
-            }
-            else {
-                return;
             }
         }, function(err) {
             console.log(err);

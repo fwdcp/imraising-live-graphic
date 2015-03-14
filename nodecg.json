@@ -1,6 +1,6 @@
 {
     "name": "imraising-total-live-graphic",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "nodecgDependency": "^0.5",
     "extension": {
         "express": false,
