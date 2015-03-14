@@ -1,0 +1,9 @@
+{
+    "name": "imraising-total-live-graphic",
+    "version": "0.1.0",
+    "nodecgDependency": "^0.5",
+    "extension": {
+        "express": false,
+        "path": "extension.js"
+    }
+}
