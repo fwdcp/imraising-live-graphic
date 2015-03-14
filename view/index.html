@@ -1,11 +1,105 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="//cdn.jsdelivr.net/jquery.marquee/1.3.1/jquery.marquee.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/accounting.js/0.4.1/accounting.min.js"></script>
+
+        <style>
+            body {
+                margin: 0;
+            }
+
+            #container {
+                position: absolute;
+                width: 768px;
+                height: 96px;
+                top: 0px;
+                left: 0px;
+                font-family: 'Open Sans', sans-serif;
+                text-align: center;
+            }
+
+            #latestDonation {
+                position: absolute;
+                width: 192px;
+                height: 96px;
+                top: 0px;
+                left: 0px;
+            }
+
+            #topDonor {
+                position: absolute;
+                width: 192px;
+                height: 96px;
+                top: 0px;
+                left: 192px;
+            }
+
+            #totalDonations {
+                position: absolute;
+                width: 192px;
+                height: 96px;
+                top: 0px;
+                left: 384px;
+            }
+
+            #totalAmount {
+                position: absolute;
+                width: 192px;
+                height: 96px;
+                top: 0px;
+                left: 576px;
+            }
+
+            .sectionTitle {
+                position: absolute;
+                width: 192px;
+                height: 24px;
+                top: 0px;
+                left: 0px;
+                line-height: 24px;
+                font-size: 20px;
+            }
+
+            .totalNumber {
+                position: absolute;
+                width: 192px;
+                height: 72px;
+                top: 24px;
+                left: 0px;
+                line-height: 72px;
+                font-size: 30px;
+            }
+
+            .name {
+                position: absolute;
+                width: 192px;
+                height: 36px;
+                top: 24px;
+                left: 0px;
+                line-height: 36px;
+                font-size: 30px;
+                overflow: hidden;
+            }
+
+            .amount {
+                position: absolute;
+                width: 192px;
+                height: 36px;
+                top: 60px;
+                left: 0px;
+                line-height: 36px;
+                font-size: 30px;
+            }
+        </style>
 
         <script>
             $(document).ready(function() {
+                var latestDonationMarquee = false;
+
                 nodecg.declareSyncedVar({
                     name: 'latestDonation',
                     initialVal: null,
@@ -14,9 +108,20 @@
                             $('#latestDonationName').text(donation.nickname);
                             $('#latestDonationMessage').text(donation.message);
                             $('#latestDonationAmount').text(accounting.formatMoney(donation.amount.display.total));
+
+                            if ($('#latestDonationName')[0].clientWidth < $('#latestDonationName')[0].scrollWidth) {
+                                $('#latestDonationName').marquee();
+                                latestDonationMarquee = true;
+                            }
+                            else if (latestDonationMarquee) {
+                                $('#latestDonationName').marquee('destroy');
+                                latestDonationMarquee = false;
+                            }
                         }
                     }
                 });
+
+                var topDonorMarquee = false;
 
                 nodecg.declareSyncedVar({
                     name: 'topDonor',
@@ -25,6 +130,15 @@
                         if (donor) {
                             $('#topDonorName').text(donor.nickname);
                             $('#topDonorAmount').text(accounting.formatMoney(donor.amount.total));
+
+                            if ($('#topDonorName')[0].clientWidth < $('#topDonorName')[0].scrollWidth) {
+                                $('#topDonorName').marquee();
+                                topDonorMarquee = true;
+                            }
+                            else if (topDonorMarquee) {
+                                $('#topDonorName').marquee('destroy');
+                                topDonorMarquee = false;
+                            }
                         }
                     }
                 });
@@ -34,8 +148,8 @@
                     initialVal: 0,
                     setter: function(totals) {
                         if (totals) {
-                            $('#totalAmount').text(accounting.formatMoney(totals.amount));
-                            $('#totalDonations').text(totals.donations);
+                            $('#totalAmountNumber').text(accounting.formatMoney(totals.amount));
+                            $('#totalDonationsNumber').text(totals.donations);
                         }
                     }
                 });
@@ -44,8 +158,25 @@
     </head>
 
     <body>
-        <p>Top Donor: <span id="topDonorName"></span> (<span id="topDonorAmount"></span>)</p>
-        <p>Latest Donation: <span id="latestDonationName"></span> (<span id="latestDonationAmount"></span>)</p>
-        <p>Total Raised: <span id="totalAmount"></span> (<span id="totalDonations"></span> donations)</p>
+        <div id="container">
+            <div id="latestDonation">
+                <div class="sectionTitle">Latest</div>
+                <div class="name" id="latestDonationName"></div>
+                <div class="amount" id="latestDonationAmount"></div>
+            </div>
+            <div id="topDonor">
+                <div class="sectionTitle">Top</div>
+                <div class="name" id="topDonorName"></div>
+                <div class="amount" id="topDonorAmount"></div>
+            </div>
+            <div id="totalDonations">
+                <div class="sectionTitle">Donations</div>
+                <div class="totalNumber" id="totalDonationsNumber"></div>
+            </div>
+            <div id="totalAmount">
+                <div class="sectionTitle">Raised</div>
+                <div class="totalNumber" id="totalAmountNumber"></div>
+            </div>
+        </div>
     </body>
 </html>
