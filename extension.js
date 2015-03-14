@@ -2,10 +2,7 @@ var fx = require('money');
 var imraising = require('imraising-tracker');
 var oxr = require('open-exchange-rates');
 var request = require('request');
-var q = require('q');
-
-// no extension config so just load config.json in local directory :/
-// var config = require('./config.json');
+var Q = require('q');
 
 module.exports = function(nodecg) {
     var client = new imraising({
@@ -33,63 +30,84 @@ module.exports = function(nodecg) {
         fx.rates = oxr.rates;
         fx.base = oxr.base;
 
-        client.addListener('donation.add', updateTotal);
-        client.addListener('donation.delete', updateTotal);
+        // wait 100ms for APIs to catch up before updating due to desync errors
+        client.addListener('donation.add', function(donation) {
+            setTimeout(updateTotal, 100);
+        });
+        client.addListener('donation.delete', function(donation) {
+            setTimeout(updateTotal, 100);
+        });
 
         updateTotal();
     });
 
     function updateTotal() {
-        totals = {
-            amount: 0,
-            donations: 0
-        };
-        page = 0;
+        Q.allSettled([
+            client.getDonations({startDate: nodecg.bundleConfig.startDate}).then(function(donations) {
+                var latestDonation = donations[0];
 
-        client.getDonations({startDate: nodecg.bundleConfig.startDate}).then(function(donations) {
-            var latestDonation = donations[0];
+                latestDonation.amount.display.total = fx(latestDonation.amount.display.total).from(latestDonation.amount.display.currency).to('USD');
+                latestDonation.amount.display.currency = 'USD';
 
-            latestDonation.amount.display.total = fx(latestDonation.amount.display.total).from(latestDonation.amount.display.currency).to('USD');
-            latestDonation.amount.display.currency = 'USD';
+                return latestDonation;
+            }),
+            client.getTopDonors({startDate: nodecg.bundleConfig.startDate}).then(function(donors) {
+                var topDonor = donors[0];
 
-            nodecg.variables.latestDonation = latestDonation;
-        }, function(err) {
-            console.log(err);
-        });
+                topDonor.amount.total = fx(topDonor.amount.total).from(topDonor.amount.currency).to('USD');
+                topDonor.amount.currency = 'USD';
 
-        client.getTopDonors({startDate: nodecg.bundleConfig.startDate}).then(function(donors) {
-            var topDonor = donors[0];
+                return topDonor;
+            }),
+            Q.fcall(function() {
+                var totals = {
+                    amount: 0,
+                    donations: 0
+                };
+                var page = 0;
 
-            topDonor.amount.total = fx(topDonor.amount.total).from(topDonor.amount.currency).to('USD');
-            topDonor.amount.currency = 'USD';
+                function getDonations(page) {
+                    return client.getDonations({offset: page * 100, limit: 100, startDate: nodecg.bundleConfig.startDate});
+                }
 
-            nodecg.variables.topDonor = topDonor;
-        }, function(err) {
-            console.log(err);
-        });
+                function handleDonations(donations) {
+                    donations.forEach(function(donation) {
+                        totals.amount += fx(donation.amount.display.total).from(donation.amount.display.currency).to('USD');
+                    });
 
-        function getDonations(page) {
-            return client.getDonations({offset: page * 100, limit: 100, startDate: nodecg.bundleConfig.startDate});
-        }
+                    totals.donations += donations.length;
 
-        function handleDonations(donations) {
-            donations.forEach(function(donation) {
-                totals.amount += fx(donation.amount.display.total).from(donation.amount.display.currency).to('USD');
-            });
+                    if (donations.length >= 100) {
+                        return getDonations(++page).then(handleDonations);
+                    }
+                    else {
+                        return totals;
+                    }
+                }
 
-            totals.donations += donations.length;
-
-            if (donations.length >= 100) {
-                return getDonations(++page).then(handleDonations, function(err) {
-                    console.log(err);
-                });
+                return getDonations(0).then(handleDonations);
+            })
+        ]).then(function(results) {
+            if (results[0].state == 'fulfilled') {
+                nodecg.variables.latestDonation = results[0].value;
             }
-        }
+            else {
+                console.log(results[0].reason);
+            }
 
-        getDonations(0).then(handleDonations, function(err) {
-            console.log(err);
-        }).fin(function() {
-            nodecg.variables.totals = totals;
+            if (results[1].state == 'fulfilled') {
+                nodecg.variables.topDonor = results[1].value;
+            }
+            else {
+                console.log(results[1].reason);
+            }
+
+            if (results[2].state == 'fulfilled') {
+                nodecg.variables.totals = results[2].value;
+            }
+            else {
+                console.log(results[2].reason);
+            }
         });
     }
 }
