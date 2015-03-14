@@ -30,10 +30,13 @@
                 });
 
                 nodecg.declareSyncedVar({
-                    name: 'total',
+                    name: 'totals',
                     initialVal: 0,
-                    setter: function(total) {
-                        $('#totalAmount').text(accounting.formatMoney(total));
+                    setter: function(totals) {
+                        if (totals) {
+                            $('#totalAmount').text(accounting.formatMoney(totals.amount));
+                            $('#totalDonations').text(totals.donations);
+                        }
                     }
                 });
             });
@@ -43,6 +46,6 @@
     <body>
         <p>Top Donor: <span id="topDonorName"></span> (<span id="topDonorAmount"></span>)</p>
         <p>Latest Donation: <span id="latestDonationName"></span> (<span id="latestDonationAmount"></span>)</p>
-        <p>Total Raised: <span id="totalAmount"></span></p>
+        <p>Total Raised: <span id="totalAmount"></span> (<span id="totalDonations"></span> donations)</p>
     </body>
 </html>

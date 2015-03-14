@@ -1,16 +1,16 @@
 {
-  "name": "imraising-total-live-graphic",
-  "version": "0.1.1",
+  "name": "imraising-live-graphic",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
-    "url": "http://github.com/fwdcp/imraising-total-live-graphic"
+    "url": "http://github.com/fwdcp/imraising-live-graphic"
   },
   "author": "Forward Command Post",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fwdcp/imraising-total-live-graphic/issues"
+    "url": "https://github.com/fwdcp/imraising-live-graphic/issues"
   },
-  "homepage": "https://github.com/fwdcp/imraising-total-live-graphic",
+  "homepage": "https://github.com/fwdcp/imraising-live-graphic",
   "dependencies": {
     "imraising-tracker": "^1.0.0",
     "money": "^0.2.0",

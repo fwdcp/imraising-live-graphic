@@ -23,8 +23,8 @@ module.exports = function(nodecg) {
     });
 
     nodecg.declareSyncedVar({
-        name: 'total',
-        initialVal: 0
+        name: 'totals',
+        initialVal: null
     });
 
     oxr.set({app_id: nodecg.bundleConfig.oerAppID});
@@ -39,12 +39,15 @@ module.exports = function(nodecg) {
         updateTotal();
     });
 
-    function getDonors(page) {
-        return client.getTopDonors({offset: page * 0, limit: 100, startDate: nodecg.bundleConfig.startDate});
+    function getDonations(page) {
+        return client.getDonations({offset: page * 0, limit: 100, startDate: nodecg.bundleConfig.startDate});
     }
 
     function updateTotal() {
-        total = 0;
+        totals = {
+            amount: 0,
+            donations: 0
+        };
         page = 0;
 
         client.getDonations({startDate: nodecg.bundleConfig.startDate}).then(function(donations) {
@@ -69,18 +72,20 @@ module.exports = function(nodecg) {
             console.log(err);
         });
 
-        getDonors(0).then(function(donors) {
-            donors.forEach(function(donor) {
-                total += fx(donor.amount.total).from(donor.amount.currency).to('USD');
+        getDonations(0).then(function(donations) {
+            donations.forEach(function(donation) {
+                totals.amount += fx(donation.amount.display.total).from(donation.amount.display.currency).to('USD');
             });
 
-            if (donors.length >= 100) {
-                return getDonors(++page);
+            totals.donations += donations.length;
+
+            if (donations.length >= 100) {
+                return getDonations(++page);
             }
         }, function(err) {
             console.log(err);
         }).fin(function() {
-            nodecg.variables.total = total;
+            nodecg.variables.totals = totals;
         });
     }
 }
