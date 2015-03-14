@@ -39,10 +39,6 @@ module.exports = function(nodecg) {
         updateTotal();
     });
 
-    function getDonations(page) {
-        return client.getDonations({offset: page * 0, limit: 100, startDate: nodecg.bundleConfig.startDate});
-    }
-
     function updateTotal() {
         totals = {
             amount: 0,
@@ -72,7 +68,11 @@ module.exports = function(nodecg) {
             console.log(err);
         });
 
-        getDonations(0).then(function(donations) {
+        function getDonations(page) {
+            return client.getDonations({offset: page * 100, limit: 100, startDate: nodecg.bundleConfig.startDate});
+        }
+
+        function handleDonations(donations) {
             donations.forEach(function(donation) {
                 totals.amount += fx(donation.amount.display.total).from(donation.amount.display.currency).to('USD');
             });
@@ -80,9 +80,13 @@ module.exports = function(nodecg) {
             totals.donations += donations.length;
 
             if (donations.length >= 100) {
-                return getDonations(++page);
+                return getDonations(++page).then(handleDonations, function(err) {
+                    console.log(err);
+                });
             }
-        }, function(err) {
+        }
+
+        getDonations(0).then(handleDonations, function(err) {
             console.log(err);
         }).fin(function() {
             nodecg.variables.totals = totals;
