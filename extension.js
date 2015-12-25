@@ -9,20 +9,9 @@ module.exports = function(nodecg) {
         key: nodecg.bundleConfig.imraisingKey
     });
 
-    nodecg.declareSyncedVar({
-        name: 'latestDonation',
-        initialVal: null
-    });
-
-    nodecg.declareSyncedVar({
-        name: 'topDonor',
-        initialVal: null
-    });
-
-    nodecg.declareSyncedVar({
-        name: 'totals',
-        initialVal: null
-    });
+    var latestDonation = nodecg.Replicant('latestDonation', {defaultValue: null});
+    var topDonor = nodecg.Replicant('topDonor', {defaultValue: null});
+    var totals = nodecg.Replicant('totals', {defaultValue: null});
 
     oxr.set({app_id: nodecg.bundleConfig.oerAppID});
 
@@ -89,21 +78,21 @@ module.exports = function(nodecg) {
             })
         ]).then(function(results) {
             if (results[0].state == 'fulfilled') {
-                nodecg.variables.latestDonation = results[0].value;
+                latestDonation.value = results[0].value;
             }
             else {
                 console.log(results[0].reason);
             }
 
             if (results[1].state == 'fulfilled') {
-                nodecg.variables.topDonor = results[1].value;
+                topDonor.value = results[1].value;
             }
             else {
                 console.log(results[1].reason);
             }
 
             if (results[2].state == 'fulfilled') {
-                nodecg.variables.totals = results[2].value;
+                totals.value = results[2].value;
             }
             else {
                 console.log(results[2].reason);

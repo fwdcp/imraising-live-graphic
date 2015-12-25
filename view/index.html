@@ -100,57 +100,48 @@
             $(document).ready(function() {
                 var latestDonationMarquee = false;
 
-                nodecg.declareSyncedVar({
-                    name: 'latestDonation',
-                    initialVal: null,
-                    setter: function(donation) {
-                        if (donation) {
-                            $('#latestDonationName').text(donation.nickname);
-                            $('#latestDonationMessage').text(donation.message);
-                            $('#latestDonationAmount').text(accounting.formatMoney(donation.amount.display.total));
+                var latestDonation = nodecg.Replicant('latestDonation', {defaultValue: null});
+                latestDonation.on('change', function(oldVal, newVal, changes) {
+                    if (newVal) {
+                        $('#latestDonationName').text(newVal.nickname);
+                        $('#latestDonationMessage').text(newVal.message);
+                        $('#latestDonationAmount').text(accounting.formatMoney(newVal.amount.display.total));
 
-                            if ($('#latestDonationName')[0].clientWidth < $('#latestDonationName')[0].scrollWidth) {
-                                $('#latestDonationName').marquee();
-                                latestDonationMarquee = true;
-                            }
-                            else if (latestDonationMarquee) {
-                                $('#latestDonationName').marquee('destroy');
-                                latestDonationMarquee = false;
-                            }
+                        if ($('#latestDonationName')[0].clientWidth < $('#latestDonationName')[0].scrollWidth) {
+                            $('#latestDonationName').marquee();
+                            latestDonationMarquee = true;
+                        }
+                        else if (latestDonationMarquee) {
+                            $('#latestDonationName').marquee('destroy');
+                            latestDonationMarquee = false;
                         }
                     }
                 });
 
                 var topDonorMarquee = false;
 
-                nodecg.declareSyncedVar({
-                    name: 'topDonor',
-                    initialVal: null,
-                    setter: function(donor) {
-                        if (donor) {
-                            $('#topDonorName').text(donor.nickname);
-                            $('#topDonorAmount').text(accounting.formatMoney(donor.amount.total));
+                var topDonor = nodecg.Replicant('topDonor', {defaultValue: null});
+                topDonor.on('change', function(oldVal, newVal, changes) {
+                    if (newVal) {
+                        $('#topDonorName').text(newVal.nickname);
+                        $('#topDonorAmount').text(accounting.formatMoney(newVal.amount.total));
 
-                            if ($('#topDonorName')[0].clientWidth < $('#topDonorName')[0].scrollWidth) {
-                                $('#topDonorName').marquee();
-                                topDonorMarquee = true;
-                            }
-                            else if (topDonorMarquee) {
-                                $('#topDonorName').marquee('destroy');
-                                topDonorMarquee = false;
-                            }
+                        if ($('#topDonorName')[0].clientWidth < $('#topDonorName')[0].scrollWidth) {
+                            $('#topDonorName').marquee();
+                            topDonorMarquee = true;
+                        }
+                        else if (topDonorMarquee) {
+                            $('#topDonorName').marquee('destroy');
+                            topDonorMarquee = false;
                         }
                     }
                 });
 
-                nodecg.declareSyncedVar({
-                    name: 'totals',
-                    initialVal: 0,
-                    setter: function(totals) {
-                        if (totals) {
-                            $('#totalAmountNumber').text(accounting.formatMoney(totals.amount));
-                            $('#totalDonationsNumber').text(totals.donations);
-                        }
+                var totals = nodecg.Replicant('totals', {defaultValue: null});
+                totals.on('change', function(oldVal, newVal, changes) {
+                    if (newVal) {
+                        $('#totalAmountNumber').text(accounting.formatMoney(newVal.amount));
+                        $('#totalDonationsNumber').text(newVal.donations);
                     }
                 });
             });
